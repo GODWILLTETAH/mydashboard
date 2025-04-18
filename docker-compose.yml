@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  frontend:
+    build: .
+    container_name: multi-app-dashboard-frontend
+    ports:
+      - "2038:80"
+    restart: unless-stopped

@@ -25,15 +25,25 @@
         version: master
         accept_hostkey: true 
 
-    - name: Stop containers using docker-compose
-      ansible.builtin.shell: |
-        cd /root/projects/mydashboard
-        sudo docker-compose down
+    - name: Ensure Docker is running
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
 
-    - name: Build and start containers using docker-compose
+    - name: Stop running containers
       ansible.builtin.shell: |
         cd /root/projects/mydashboard
-        sudo docker-compose up -d --build
+        docker-compose down
+      args:
+        warn: false
+
+    - name: Build and start containers
+      ansible.builtin.shell: |
+        cd /root/projects/mydashboard
+        docker-compose up -d --build
+      args:
+        warn: false
 
 # run this command in ansible folder to : ansible-playbook -i inventory/hosts.ini deploy.yml
 
