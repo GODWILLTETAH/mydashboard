@@ -57,7 +57,7 @@ const Home = () => {
   return (
     <>
       <div className="home-page">
-        <h2 className="welcome-text">👋 Welcome, {user.username}!</h2>
+        <h2 className="welcome-text">👋 Halo, {user.username}!</h2>
 
         <div className="stats-grid">
           <div className="stat-card">
