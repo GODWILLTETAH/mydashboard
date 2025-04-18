@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-/ansible
+# /ansible
 /.pnp
 .pnp.js
 
