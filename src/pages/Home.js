@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import { API_BASE_URL } from '../config';
 
+
 const Home = () => {
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(storedUser) : { name: 'User' };
