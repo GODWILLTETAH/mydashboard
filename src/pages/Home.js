@@ -7,7 +7,7 @@ import {
   FaLanguage,
   FaChalkboardTeacher,
 } from 'react-icons/fa';
-import API_BASE_URL from '../config';
+import { API_BASE_URL } from '../config';
 
 const Home = () => {
   const storedUser = localStorage.getItem('user');

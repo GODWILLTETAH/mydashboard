@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
-import API_BASE_URL from '../config';
+import { API_BASE_URL } from '../config';
 
 const Login = () => {
   const navigate = useNavigate();
