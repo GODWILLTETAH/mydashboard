@@ -136,7 +136,7 @@ const Languages = () => {
 
   const mediaUrl = (relativePath) => {
     if (!relativePath || relativePath === 'null') return null;
-    return `${MEDIA_BASE_URL}/${relativePath}`;
+    return `${MEDIA_BASE_URL}${relativePath}`;
   };
 
   return (

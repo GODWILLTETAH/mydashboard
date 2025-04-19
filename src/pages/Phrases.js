@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import API_BASE_URL from '../config';
+import {API_BASE_URL, MEDIA_BASE_URL  } from '../config';
 import { FaTrash } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
 
@@ -170,7 +170,7 @@ const Phrases = () => {
 
   const mediaUrl = (relativePath) => {
     if (!relativePath || relativePath === 'null') return null;
-    return `http://hub.go237.com:2037${relativePath}`;
+    return `${MEDIA_BASE_URL}${relativePath}`;
   };
 
   const paginatedPhrases = filteredPhrases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
