@@ -297,7 +297,8 @@
 //   );
 // };
 
-// export default Phrases;
+// export default Phrase
+
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -313,7 +314,7 @@ const Phrases = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     language: '',
-    lesson: '', // Single value
+    lesson: [], // <-- Make lesson an array!
     text: '',
     pronunciation: '',
     translation: '',
@@ -374,12 +375,14 @@ const Phrases = () => {
     setCurrentPage(1);
   }, [searchQuery, phrases]);
 
+  // Handle changes in the form
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
       setFormData({ ...formData, [name]: files[0] });
     } else if (name === 'lesson') {
-      setFormData({ ...formData, lesson: value }); // Single value
+      // Always store lesson as an array (single selection)
+      setFormData({ ...formData, lesson: [value] });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -413,6 +416,7 @@ const Phrases = () => {
     }
   };
 
+  // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -420,23 +424,24 @@ const Phrases = () => {
 
     const token = localStorage.getItem('token');
     const data = new FormData();
+
+    // Append all values except audioUrl and lesson
     Object.entries(formData).forEach(([key, val]) => {
       if (key !== 'audioUrl' && key !== 'lesson' && val) data.append(key, val);
     });
 
-    if (formData.lesson) data.append('lesson', formData.lesson);
+    // Always append lesson as array elements (even if only one)
+    if (formData.lesson && Array.isArray(formData.lesson)) {
+      formData.lesson.forEach(lessonId => data.append('lesson', lessonId));
+    }
 
+    // Append audio file
     if (recordedAudio) {
       const file = new File([recordedAudio], "recording.webm", { type: "audio/webm" });
       data.append("audioUrl", file);
     } else if (formData.audioUrl) {
       data.append("audioUrl", formData.audioUrl);
     }
-
-    // Debug: Log FormData
-    // for (var pair of data.entries()) {
-    //   console.log(pair[0]+ ', ' + pair[1]);
-    // }
 
     try {
       await axios.post(`${API_BASE_URL}/phrase`, data, {
@@ -448,7 +453,7 @@ const Phrases = () => {
       setMessage('✅ Phrase created successfully');
       setFormData({
         language: '',
-        lesson: '',
+        lesson: [],
         text: '',
         pronunciation: '',
         translation: '',
@@ -495,20 +500,20 @@ const Phrases = () => {
     <div style={{ padding: '30px' }}>
       <h2 style={{ fontSize: '24px', marginBottom: '20px', textAlign: 'center' }}>💬 Phrases</h2>
 
-      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', maxWidth: '700px', margin: '0 auto 40px' }}>
+      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 8px #eee', marginBottom: '30px' }}>
         <h3 style={{ marginBottom: '15px' }}>Add New Phrase</h3>
-        <select name="language" value={formData.language} onChange={handleChange} required style={{ marginBottom: '10px', padding: '10px', width: '100%' }}>
+        <select name="language" value={formData.language} onChange={handleChange} required style={{ marginBottom: '10px', padding: '7px', width: '100%' }}>
           <option value="">Select Language</option>
           {languages.map(lang => <option key={lang._id} value={lang._id}>{lang.name}</option>)}
         </select>
-        <select name="lesson" value={formData.lesson} onChange={handleChange} required style={{ marginBottom: '10px', padding: '10px', width: '100%' }}>
+        <select name="lesson" value={formData.lesson[0] || ''} onChange={handleChange} required style={{ marginBottom: '10px', padding: '7px', width: '100%' }}>
           <option value="">Select Lesson</option>
           {lessons.map(lesson => <option key={lesson._id} value={lesson._id}>{lesson.title}</option>)}
         </select>
-        <input type="text" name="text" placeholder="Phrase text" value={formData.text} onChange={handleChange} required style={{ marginBottom: '10px', padding: '10px', width: '100%' }} />
-        <input type="text" name="pronunciation" placeholder="Pronunciation" value={formData.pronunciation} onChange={handleChange} required style={{ marginBottom: '10px', padding: '10px', width: '100%' }} />
-        <input type="text" name="translation" placeholder="Translation (optional)" value={formData.translation} onChange={handleChange} style={{ marginBottom: '10px', padding: '10px', width: '100%' }} />
-        <textarea name="meaning" placeholder="Meaning" value={formData.meaning} onChange={handleChange} required style={{ marginBottom: '10px', padding: '10px', width: '100%' }}></textarea>
+        <input type="text" name="text" placeholder="Phrase text" value={formData.text} onChange={handleChange} required style={{ marginBottom: '10px', width: '100%', padding: '7px' }} />
+        <input type="text" name="pronunciation" placeholder="Pronunciation" value={formData.pronunciation} onChange={handleChange} required style={{ marginBottom: '10px', width: '100%', padding: '7px' }} />
+        <input type="text" name="translation" placeholder="Translation (optional)" value={formData.translation} onChange={handleChange} style={{ marginBottom: '10px', width: '100%', padding: '7px' }} />
+        <textarea name="meaning" placeholder="Meaning" value={formData.meaning} onChange={handleChange} required style={{ marginBottom: '10px', width: '100%', padding: '7px', minHeight: '50px' }} />
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ flex: 1 }}>
@@ -523,11 +528,16 @@ const Phrases = () => {
                 <button type="button" onClick={startRecording} style={{ marginTop: '5px', padding: '6px 10px' }}>🎙️ Record</button>
               </>
             )}
-            {isRecording && <p style={{ color: 'red', fontWeight: 'bold' }}>🔴 Recording... <button type="button" onClick={stopRecording} style={{ marginLeft: '10px', color: '#fff', backgroundColor: 'red', padding: '5px 10px' }}>Stop</button></p>}
+            {isRecording && (
+              <p style={{ color: 'red', fontWeight: 'bold' }}>
+                🔴 Recording...
+                <button type="button" onClick={stopRecording} style={{ marginLeft: '8px', padding: '4px 10px' }}>Stop</button>
+              </p>
+            )}
             {recordedAudio && (
               <div style={{ marginTop: '10px' }}>
                 <audio controls src={URL.createObjectURL(recordedAudio)} style={{ width: '100%' }} />
-                <button type="button" onClick={() => setRecordedAudio(null)} style={{ marginTop: '5px', padding: '5px 10px', backgroundColor: '#f87171', color: '#fff' }}>
+                <button type="button" onClick={() => setRecordedAudio(null)} style={{ marginTop: '5px', padding: '5px 10px' }}>
                   ❌ Discard Recording
                 </button>
               </div>
@@ -538,14 +548,14 @@ const Phrases = () => {
             <input type="file" name="videoUrl" accept="video/*" onChange={handleChange} style={{ width: '100%' }} />
           </div>
         </div>
-        <button type="submit" disabled={loading} style={{ marginTop: '15px', padding: '10px 20px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px' }}>
+        <button type="submit" disabled={loading} style={{ marginTop: '15px', padding: '10px 20px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold' }}>
           {loading ? <ImSpinner2 className="spinner-icon" /> : 'Add Phrase'}
         </button>
         {message && <p style={{ marginTop: '10px', color: message.includes('✅') ? 'green' : 'red' }}>{message}</p>}
       </form>
 
       <div style={{ marginBottom: '15px' }}>
-        <input type="text" placeholder="Search phrases..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '300px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+        <input type="text" placeholder="Search phrases..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '100%', padding: '7px', borderRadius: '4px', border: '1px solid #ddd' }} />
       </div>
 
       <h3 style={{ marginBottom: '15px' }}>Available Phrases</h3>
@@ -567,12 +577,16 @@ const Phrases = () => {
               <tr key={phrase._id}>
                 <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>
                   {phrase.text}<br />
-                  <small style={{ color: '#6b7280' }}>{phrase.createdBy?.username} ({phrase.createdBy?.email})<br />{new Date(phrase.createdAt).toLocaleDateString()}</small>
+                  <small style={{ color: '#6b7280' }}>{phrase.createdBy?.username} ({phrase.createdBy?.email})</small>
                 </td>
                 <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>{phrase.pronunciation}</td>
                 <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>{phrase.meaning}</td>
                 <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>{phrase.language?.name || 'N/A'}</td>
-                <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>{phrase.lesson?.map(l => l.title).join(', ')}</td>
+                <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>
+                  {(phrase.lesson && Array.isArray(phrase.lesson)) 
+                    ? phrase.lesson.map(l => l.title).join(', ') 
+                    : ''}
+                </td>
                 <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     {mediaUrl(phrase.imageUrl) && (
@@ -586,9 +600,8 @@ const Phrases = () => {
                     )}
                   </div>
                 </td>
-
                 <td style={{ padding: '10px', border: '1px solid #e5e7eb' }}>
-                  <button onClick={() => handleDelete(phrase._id)} disabled={deletingId === phrase._id} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer' }}>
+                  <button onClick={() => handleDelete(phrase._id)} disabled={deletingId === phrase._id} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', padding: '7px 10px', cursor: 'pointer' }}>
                     {deletingId === phrase._id ? <ImSpinner2 className="spinner-icon" /> : <FaTrash />}
                   </button>
                 </td>
@@ -613,3 +626,4 @@ const Phrases = () => {
 };
 
 export default Phrases;
+
