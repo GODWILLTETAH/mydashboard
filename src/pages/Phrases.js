@@ -297,4 +297,4 @@ const Phrases = () => {
   );
 };
 
-export default Phrase
+export default Phrases
