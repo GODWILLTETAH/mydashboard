@@ -19,7 +19,7 @@
   tasks:
     - name: Pull latest changes from repository
       ansible.builtin.git:
-        repo: 'git@github.com:GODWILLTETAH/mydashboard.git'
+        repo: 'https://GODWILLTETAH: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@github.com/GODWILLTETAH/mydashboard.git'
         
         dest: /root/projects/mydashboard
         version: master
